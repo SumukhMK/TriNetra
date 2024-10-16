@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise List</title>
+    <style>
+        /* General Styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Light Mode (Default) Styles */
+        body {
+            background-color: #f2f2f2; /* Light grey background */
+            color: #333;               /* Dark grey text */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212; /* Dark background */
+            color: #fff;               /* Light text */
+        }
+
+        /* Header styling */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 0;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode header {
+            background-color: #1f1f1f; /* Darker header background for dark mode */
+        }
+
+        /* Logo */
+        .logo img {
+            width: 150px;
+            height: auto;
+        }
+
+        /* Login Button */
+        .login-btn {
+            padding: 10px 20px;
+            background-color: #007BFF; /* Blue */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .login-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Main content styling */
+        main {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 80px;
+            width: 100%;
+        }
+
+        /* Exercise List */
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .exercise-item {
+            padding: 15px 30px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 200px;
+        }
+
+        .exercise-item:hover {
+            background-color: #218838;
+            transform: translateY(-5px); /* Slight upward animation */
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .exercise-item {
+                width: 100%;
+                font-size: 16px;
+                padding: 10px 20px;
+            }
+        }
+
+        /* Dark Mode Specific Button Colors */
+        body.dark-mode .exercise-item {
+            background-color: #1d7433;
+        }
+
+        body.dark-mode .exercise-item:hover {
+            background-color: #145825;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top navigation with logo and login button -->
+    <header>
+        <div class="logo">
+            <!-- Add your logo image here -->
+            <img src="your-logo-url.png" alt="Logo">
+        </div>
+        <button class="login-btn" onclick="login()">Login</button>
+    </header>
+    
+    <!-- Main content with the list of exercises -->
+    <main>
+        <h1>Choose Your Exercise</h1>
+        <div class="exercise-list">
+            <a href="#" class="exercise-item">Eye Focus Exercise</a>
+            <a href="#" class="exercise-item">Eye Relaxation Exercise</a>
+            <!-- <a href="#" class="exercise-item">Peripheral Vision Test</a>
+            <a href="#" class="exercise-item">Saccades Training</a>
+            <a href="#" class="exercise-item">Smooth Pursuit Tracking</a> -->
+        </div>
+    </main>
+    
+    <!-- JavaScript for button interactions -->
+    <script>
+        // Function triggered when login button is clicked
+        function login() {
+            alert("Login button clicked!");
+        }
+
+        // Function to toggle between light and dark mode
+        function toggleMode() {
+            const body = document.body;
+            const toggleBtn = document.getElementById('modeToggleBtn');
+
+            // Toggle between light and dark mode class
+            body.classList.toggle('dark-mode');
+
+            // Update button text based on current mode
+            if (body.classList.contains('dark-mode')) {
+                toggleBtn.textContent = 'Light Mode';
+            } else {
+                toggleBtn.textContent = 'Dark Mode';
+            }
+        }
+    </script>
+</body>
+</html>
