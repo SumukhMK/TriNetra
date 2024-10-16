@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thrataka Eye Exercise</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('soothing-background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            position: relative;
+        }
+        .container {
+            text-align: center;
+        }
+        .timer {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .dot {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+            margin: 0 auto;
+            position: absolute; /* Changed to absolute for positioning */
+            top: 50%; /* Center vertically */
+            left: 50%; /* Center horizontally */
+            transform: translate(-50%, -50%); /* Center the dot */
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.5);
+            }
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        #eye-tracker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: blue;
+            border-radius: 50%;
+            pointer-events: none; /* Prevent pointer events on the tracker */
+            z-index: 10; /* Ensure tracker appears above other elements */
+        }
+    </style>
+    <script src="https://cdn.rawgit.com/brownhci/WebGazer/master/webgazer.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Thrataka Eye Exercise</h1>
+        <div class="timer" id="timer">30</div>
+        <div class="dot" id="dot"></div>
+        <div class="controls">
+            <label for="time-select">Select Timer:</label>
+            <select id="time-select">
+                <option value="30">30s</option>
+                <option value="45">45s</option>
+                <option value="60">60s</option>
+            </select>
+            <button id="start-button">Start</button>
+            <button id="restart-button">Restart</button>
+        </div>
+        <div id="eye-tracker"></div> <!-- Eye tracker pointer -->
+    </div>
+    <script>
+        let countdown; // Variable to hold the countdown interval
+        let time; // Variable to hold the remaining time
+        const eyeTracker = document.getElementById('eye-tracker'); // Eye tracker pointer
+
+        // Initialize WebGazer
+        window.onload = function () {
+            webgazer.setRegression('ridge') // Set regression model
+                .setGazeListener((data, elapsedTime) => {
+                    if (data == null) return;
+                    const x = data.x; // X-coordinate of gaze
+                    const y = data.y; // Y-coordinate of gaze
+                    eyeTracker.style.left = `${x}px`;
+                    eyeTracker.style.top = `${y}px`;
+
+                    // Check if user is focused on the dot
+                    const dot = document.getElementById('dot');
+                    const dotRect = dot.getBoundingClientRect();
+                    if (
+                        x > dotRect.left &&
+                        x < dotRect.right &&
+                        y > dotRect.top &&
+                        y < dotRect.bottom
+                    ) {
+                        dot.style.backgroundColor = 'green'; // Change dot color when focused
+                    } else {
+                        dot.style.backgroundColor = 'red'; // Change back to red when not focused
+                    }
+                })
+                .begin();
+        };
+
+        document.getElementById('start-button').addEventListener('click', function () {
+            // Get selected time from the dropdown
+            time = parseInt(document.getElementById('time-select').value);
+            document.getElementById('timer').textContent = time;
+
+            // Clear any existing countdown
+            clearInterval(countdown);
+
+            // Start the countdown
+            countdown = setInterval(() => {
+                time--;
+                document.getElementById('timer').textContent = time;
+                if (time <= 0) {
+                    clearInterval(countdown);
+                    alert("Time's up!"); // Notify user when time is up
+                }
+            }, 1000);
+        });
+
+        document.getElementById('restart-button').addEventListener('click', function () {
+            // Restart the timer to the selected value
+            time = parseInt(document.getElementById('time-select').value);
+            document.getElementById('timer').textContent = time;
+
+            // Clear existing countdown if it's running
+            clearInterval(countdown);
+        });
+    </script>
+</body>
+</html>
