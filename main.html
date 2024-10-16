@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eye Tracking and Bouncing Logo</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+}
+
+.container {
+  width: 800px;
+  height: 600px;
+  position: relative;
+  background-color: #111;
+  overflow: hidden;
+}
+
+#logo {
+  width: 100px;
+  position: absolute;
+}
+
+#eyePointer {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  position: absolute;
+  pointer-events: none; /* So it doesn't interfere with interaction */
+}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img id="logo" src="dvd_logo.png" alt="DVD Logo" />
+      <div id="eyePointer"></div>
+    </div>
+
+    <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Bouncing logo variables
+const logo = document.getElementById("logo");
+let xPos = 100;
+let yPos = 100;
+let xSpeed = 3;
+let ySpeed = 3;
+
+function updateLogo() {
+  const container = document.querySelector(".container");
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight;
+  const logoWidth = logo.clientWidth;
+  const logoHeight = logo.clientHeight;
+
+  // Move the logo
+  xPos += xSpeed;
+  yPos += ySpeed;
+
+  // Check for collision with container edges
+  if (xPos + logoWidth >= containerWidth || xPos <= 0) {
+    xSpeed *= -1; // Reverse direction on the X axis
+  }
+
+  if (yPos + logoHeight >= containerHeight || yPos <= 0) {
+    ySpeed *= -1; // Reverse direction on the Y axis
+  }
+
+  // Update the position of the logo
+  logo.style.left = xPos + "px";
+  logo.style.top = yPos + "px";
+
+  requestAnimationFrame(updateLogo); // Call update on the next frame
+}
+
+updateLogo(); // Start the logo animation
+
+// Eye tracking setup
+window.onload = function () {
+  // Start WebGazer.js to track eye movement
+  webgazer
+    .setGazeListener(function (data, elapsedTime) {
+      if (data == null) {
+        return;
+      }
+
+      // Update the position of the eye tracking pointer
+      const eyePointer = document.getElementById("eyePointer");
+      eyePointer.style.left = data.x + "px";
+      eyePointer.style.top = data.y + "px";
+    })
+    .begin();
+
+  // Optional: to hide the webgazer video and feedback box
+  webgazer.showVideoPreview(false).showPredictionPoints(false);
+};
+    </script>
+  </body>
+</html>
