@@ -3,111 +3,163 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eye Tracking and Bouncing Logo</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Saccades Exercise with Face Camera</title>
     <style>
-        * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-body,
-html {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #000;
-}
+      body,
+      html {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #000;
+      }
 
-.container {
-  width: 800px;
-  height: 600px;
-  position: relative;
-  background-color: #111;
-  overflow: hidden;
-}
+      .container {
+        width: 800px;
+        height: 600px;
+        position: relative;
+        background-color: #111;
+        overflow: hidden;
+      }
 
-#logo {
-  width: 100px;
-  position: absolute;
-}
+      #logo {
+        width: 100px;
+        position: absolute;
+      }
 
-#eyePointer {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: red;
-  position: absolute;
-  pointer-events: none; /* So it doesn't interfere with interaction */
-}
+      #eyePointer {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: red;
+        position: absolute;
+        pointer-events: none; /* So it doesn't interfere with interaction */
+        transition: transform 0.1s ease-out; /* Smooth movement */
+      }
+
+      .calibration-point {
+        width: 20px;
+        height: 20px;
+        background-color: yellow;
+        border-radius: 50%;
+        position: absolute;
+        pointer-events: none;
+        opacity: 0.8;
+      }
+
+      /* Styling the face camera feed */
+      #webgazerVideoFeed {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 200px; /* Adjust size as needed */
+        border: 2px solid white;
+        z-index: 1000;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <img id="logo" src="dvd_logo.png" alt="DVD Logo" />
+      <img id="logo" src="image.png" alt="Logo" />
       <div id="eyePointer"></div>
+
+      <!-- Calibration Points -->
+      <div class="calibration-point" style="top: 10%; left: 10%;"></div>
+      <div class="calibration-point" style="top: 10%; left: 90%;"></div>
+      <div class="calibration-point" style="top: 90%; left: 10%;"></div>
+      <div class="calibration-point" style="top: 90%; left: 90%;"></div>
+
+      <!-- Webcam video feed -->
+      <video id="webgazerVideoFeed" autoplay muted></video>
     </div>
 
     <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
-    <script src="script.js"></script>
     <script>
-        // Bouncing logo variables
-const logo = document.getElementById("logo");
-let xPos = 100;
-let yPos = 100;
-let xSpeed = 3;
-let ySpeed = 3;
+      // Bouncing logo variables
+      const logo = document.getElementById("logo");
+      let xPos = 100;
+      let yPos = 100;
+      let xSpeed = 3;
+      let ySpeed = 3;
 
-function updateLogo() {
-  const container = document.querySelector(".container");
-  const containerWidth = container.clientWidth;
-  const containerHeight = container.clientHeight;
-  const logoWidth = logo.clientWidth;
-  const logoHeight = logo.clientHeight;
+      function updateLogo() {
+        const container = document.querySelector(".container");
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        const logoWidth = logo.clientWidth;
+        const logoHeight = logo.clientHeight;
 
-  // Move the logo
-  xPos += xSpeed;
-  yPos += ySpeed;
+        // Move the logo
+        xPos += xSpeed;
+        yPos += ySpeed;
 
-  // Check for collision with container edges
-  if (xPos + logoWidth >= containerWidth || xPos <= 0) {
-    xSpeed *= -1; // Reverse direction on the X axis
-  }
+        // Check for collision with container edges
+        if (xPos + logoWidth >= containerWidth || xPos <= 0) {
+          xSpeed *= -1; // Reverse direction on the X axis
+        }
 
-  if (yPos + logoHeight >= containerHeight || yPos <= 0) {
-    ySpeed *= -1; // Reverse direction on the Y axis
-  }
+        if (yPos + logoHeight >= containerHeight || yPos <= 0) {
+          ySpeed *= -1; // Reverse direction on the Y axis
+        }
 
-  // Update the position of the logo
-  logo.style.left = xPos + "px";
-  logo.style.top = yPos + "px";
+        // Update the position of the logo
+        logo.style.left = xPos + "px";
+        logo.style.top = yPos + "px";
 
-  requestAnimationFrame(updateLogo); // Call update on the next frame
-}
-
-updateLogo(); // Start the logo animation
-
-// Eye tracking setup
-window.onload = function () {
-  // Start WebGazer.js to track eye movement
-  webgazer
-    .setGazeListener(function (data, elapsedTime) {
-      if (data == null) {
-        return;
+        requestAnimationFrame(updateLogo); // Call update on the next frame
       }
 
-      // Update the position of the eye tracking pointer
-      const eyePointer = document.getElementById("eyePointer");
-      eyePointer.style.left = data.x + "px";
-      eyePointer.style.top = data.y + "px";
-    })
-    .begin();
+      updateLogo(); // Start the logo animation
 
-  // Optional: to hide the webgazer video and feedback box
-  webgazer.showVideoPreview(false).showPredictionPoints(false);
-};
+      // Eye tracking setup
+      let smoothingFactor = 0.2; // Factor for smoothing movements
+      let previousX = null, previousY = null; // Previous coordinates for smoothing
+
+      window.onload = function () {
+        // Start WebGazer.js to track eye movement
+        webgazer
+          .setGazeListener(function (data, elapsedTime) {
+            if (data == null) return;
+
+            const eyePointer = document.getElementById("eyePointer");
+            const smoothedX = smoothMovement(previousX, data.x, smoothingFactor);
+            const smoothedY = smoothMovement(previousY, data.y, smoothingFactor);
+
+            eyePointer.style.left = smoothedX + "px";
+            eyePointer.style.top = smoothedY + "px";
+
+            previousX = smoothedX;
+            previousY = smoothedY;
+          })
+          .begin();
+
+        // Optional: to hide the webgazer video and feedback box
+        webgazer.showVideoPreview(true).showPredictionPoints(false);
+
+        // Calibration points interaction
+        document.querySelectorAll('.calibration-point').forEach(point => {
+          point.addEventListener('click', () => {
+            webgazer.recordScreenPosition(point.getBoundingClientRect().left, point.getBoundingClientRect().top);
+            point.style.backgroundColor = 'green'; // Change color after calibration
+          });
+        });
+
+        // Attach video feed to the video element
+        const videoFeed = document.getElementById("webgazerVideoFeed");
+        webgazer.setVideoElement(videoFeed);
+      };
+
+      // Smooth movement function
+      function smoothMovement(prev, current, factor) {
+        if (prev === null) return current;
+        return prev + (current - prev) * factor;
+      }
     </script>
   </body>
 </html>
