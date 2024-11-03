@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Exercise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: beige;
+            font-family: 'Raleway', sans-serif;
+            text-align: center;
+            margin: 50px 0;
+            padding: 0 20px;
+            position: relative;
+            overflow: hidden; /* Prevent scrollbars */
+            color: #2c3e50;
+        }
+
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+            color: #2c3e50;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        /* Video feed styling */
+        #videoFeed {
+            width: 80%;
+            max-width: 600px;
+            height: auto;
+            border: 4px solid #2c3e50;
+            border-radius: 10px;
+            margin-bottom: 40px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Balloon styling */
+        #balloon, .other-balloons {
+            width: 50px;
+            height: 100px;
+            border-radius: 25px;
+            position: absolute;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        #balloon {
+            background-color: blue; /* Target blue balloon */
+        }
+
+        .other-balloons {
+            background-color: green; /* Default color for other balloons */
+        }
+
+        /* Button styles */
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            margin: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:active {
+            background-color: #1f6b99;
+        }
+
+        /* Floating message styling */
+        #floating-message {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-size: 1rem;
+        }
+
+        /* Layout container for buttons */
+        .button-container {
+            margin: 30px auto;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            #videoFeed {
+                width: 90%;
+            }
+
+            button {
+                width: 80%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            button {
+                width: 100%;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Balloon Eye Exercise</h1>
+    <p>Focus on the <strong>blue balloon</strong> as it moves!</p>
+
+    <!-- Iris Tracking Video Feed -->
+    <h2>Iris Tracking Feed:</h2>
+    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
+
+    <!-- Target blue balloon -->
+    <div id="balloon"></div>
+
+    <!-- Multiple other balloons (distractors) -->
+    <div class="other-balloons" id="balloon1"></div>
+    <div class="other-balloons" id="balloon2"></div>
+    <div class="other-balloons" id="balloon3"></div>
+    <div class="other-balloons" id="balloon4"></div>
+    <div class="other-balloons" id="balloon5"></div>
+
+    <!-- Button container -->
+    <div class="button-container">
+        <button onclick="startBalloon()">Start Balloon Exercise</button>
+        <button onclick="stopBalloon()">Stop Balloon Exercise</button>
+    </div>
+
+    <!-- Floating Message -->
+    <div id="floating-message">It has already started!</div>
+
+    <script>
+        let exerciseStarted = false; // Flag to check if the exercise has started
+        let balloonInterval;
+
+        function startBalloon() {
+            // If the exercise has already started, show a floating message
+            if (exerciseStarted) {
+                showFloatingMessage();
+                return;
+            }
+
+            alert("Balloon exercise started.");
+            exerciseStarted = true; // Mark exercise as started
+
+            let balloons = [document.getElementById("balloon")];
+            let otherBalloons = document.getElementsByClassName("other-balloons");
+
+            // Add other balloons to the balloons array
+            for (let i = 0; i < otherBalloons.length; i++) {
+                balloons.push(otherBalloons[i]);
+            }
+
+            // Initialize balloons with random positions and velocities
+            balloons.forEach(balloon => {
+                balloon.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+                balloon.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+
+                // Randomize velocity
+                balloon.velocityX = (Math.random() * 4 + 1) * (Math.random() < 0.5 ? 1 : -1); // Random speed between -5 and 5
+                balloon.velocityY = (Math.random() * 4 + 1) * (Math.random() < 0.5 ? 1 : -1); // Random speed between -5 and 5
+            });
+
+            balloonInterval = setInterval(() => {
+                // Move each balloon
+                balloons.forEach(balloon => {
+                    // Update balloon position
+                    let balloonX = parseFloat(balloon.style.left);
+                    let balloonY = parseFloat(balloon.style.top);
+
+                    balloonX += balloon.velocityX;
+                    balloonY += balloon.velocityY;
+
+                    // Bounce off edges
+                    if (balloonX < 0 || balloonX > window.innerWidth - 50) {
+                        balloon.velocityX *= -1; // Reverse direction
+                    }
+                    if (balloonY < 0 || balloonY > window.innerHeight - 100) {
+                        balloon.velocityY *= -1; // Reverse direction
+                    }
+
+                    // Update position
+                    balloon.style.left = balloonX + 'px';
+                    balloon.style.top = balloonY + 'px';
+                });
+            }, 30);
+        }
+
+        function stopBalloon() {
+            if (!exerciseStarted) return;
+
+            clearInterval(balloonInterval); // Stop balloon movement
+            exerciseStarted = false; // Reset exercise state
+            alert("Balloon exercise stopped.");
+        }
+
+        function showFloatingMessage() {
+            let message = document.getElementById("floating-message");
+            message.style.display = 'block'; // Show the message
+
+            // Hide the message after 3 seconds
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
