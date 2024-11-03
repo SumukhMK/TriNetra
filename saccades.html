@@ -1,165 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Saccades Exercise with Face Camera</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saccades Exercise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+        /* (Styles remain the same) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-      body,
-      html {
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #000;
-      }
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: beige;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #2c3e50;
+            overflow: hidden;
+        }
 
-      .container {
-        width: 800px;
-        height: 600px;
-        position: relative;
-        background-color: #111;
-        overflow: hidden;
-      }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            color: #2c3e50;
+        }
 
-      #logo {
-        width: 100px;
-        position: absolute;
-      }
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
 
-      #eyePointer {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: red;
-        position: absolute;
-        pointer-events: none; /* So it doesn't interfere with interaction */
-        transition: transform 0.1s ease-out; /* Smooth movement */
-      }
+        p {
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            color: #34495e;
+        }
 
-      .calibration-point {
-        width: 20px;
-        height: 20px;
-        background-color: yellow;
-        border-radius: 50%;
-        position: absolute;
-        pointer-events: none;
-        opacity: 0.8;
-      }
+        label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-right: 10px;
+        }
 
-      /* Styling the face camera feed */
-      #webgazerVideoFeed {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        width: 200px; /* Adjust size as needed */
-        border: 2px solid white;
-        z-index: 1000;
-      }
+        select, button {
+            padding: 10px 20px;
+            margin: 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        #button-container {
+            margin-top: 20px;
+        }
+
+        #videoFeed {
+            width: 600px;
+            height: 450px;
+            border: 2px solid #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        #moving-object {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            position: absolute;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: none; /* Hide initially */
+        }
+
+        #floating-message {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <img id="logo" src="image.png" alt="Logo" />
-      <div id="eyePointer"></div>
+</head>
+<body>
+    <h1>Saccades Eye Exercise</h1>
+    <p>Follow the moving object with your eyes.</p>
 
-      <!-- Calibration Points -->
-      <div class="calibration-point" style="top: 10%; left: 10%;"></div>
-      <div class="calibration-point" style="top: 10%; left: 90%;"></div>
-      <div class="calibration-point" style="top: 90%; left: 10%;"></div>
-      <div class="calibration-point" style="top: 90%; left: 90%;"></div>
+    <!-- Iris Tracking Video Feed -->
+    <h2>Iris Tracking Feed:</h2>
+    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
 
-      <!-- Webcam video feed -->
-      <video id="webgazerVideoFeed" autoplay muted></video>
+    <!-- Moving Object for Saccades -->
+    <div id="moving-object"></div>
+
+    <!-- Speed Selector -->
+    <label for="speed">Select Speed:</label>
+    <select id="speed" onchange="updateSpeed()">
+        <option value="1000">1 Second</option>
+        <option value="700">0.7 Seconds</option>
+        <option value="500">0.5 Seconds</option>
+    </select>
+
+    <!-- Button Container for Start and Stop -->
+    <div id="button-container">
+        <button onclick="startSaccades()">Start Saccades Exercise</button>
+        <button onclick="stopSaccades()">Stop Saccades Exercise</button>
     </div>
 
-    <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+    <!-- Floating Message -->
+    <div id="floating-message">The exercise has already started!</div>
+
     <script>
-      // Bouncing logo variables
-      const logo = document.getElementById("logo");
-      let xPos = 100;
-      let yPos = 100;
-      let xSpeed = 3;
-      let ySpeed = 3;
+        let speed = 1000; // Default interval speed in milliseconds
+        let exerciseStarted = false;
+        let interval;
 
-      function updateLogo() {
-        const container = document.querySelector(".container");
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
-        const logoWidth = logo.clientWidth;
-        const logoHeight = logo.clientHeight;
-
-        // Move the logo
-        xPos += xSpeed;
-        yPos += ySpeed;
-
-        // Check for collision with container edges
-        if (xPos + logoWidth >= containerWidth || xPos <= 0) {
-          xSpeed *= -1; // Reverse direction on the X axis
+        function updateSpeed() {
+            speed = parseInt(document.getElementById("speed").value);
+            if (exerciseStarted) {
+                clearInterval(interval);
+                startSaccades(); // Restart with updated speed
+            }
         }
 
-        if (yPos + logoHeight >= containerHeight || yPos <= 0) {
-          ySpeed *= -1; // Reverse direction on the Y axis
+        function startSaccades() {
+            if (exerciseStarted) {
+                showFloatingMessage();
+                return;
+            }
+
+            alert("Saccades exercise started.");
+            exerciseStarted = true;
+            let object = document.getElementById("moving-object");
+            object.style.display = 'block'; // Make the object visible
+
+            interval = setInterval(() => {
+                // Randomly position the object within the window bounds
+                let windowWidth = window.innerWidth;
+                let windowHeight = window.innerHeight;
+                let objectWidth = object.offsetWidth;
+                let objectHeight = object.offsetHeight;
+
+                let randomX = Math.random() * (windowWidth - objectWidth);
+                let randomY = Math.random() * (windowHeight - objectHeight);
+
+                object.style.left = randomX + 'px';
+                object.style.top = randomY + 'px';
+            }, speed);
         }
 
-        // Update the position of the logo
-        logo.style.left = xPos + "px";
-        logo.style.top = yPos + "px";
+        function stopSaccades() {
+            if (!exerciseStarted) return;
 
-        requestAnimationFrame(updateLogo); // Call update on the next frame
-      }
+            clearInterval(interval);
+            exerciseStarted = false;
+            let object = document.getElementById("moving-object");
+            object.style.display = 'none'; // Hide the object when stopped
+            alert("Saccades exercise stopped.");
+        }
 
-      updateLogo(); // Start the logo animation
+        function showFloatingMessage() {
+            let message = document.getElementById("floating-message");
+            message.style.display = 'block';
 
-      // Eye tracking setup
-      let smoothingFactor = 0.2; // Factor for smoothing movements
-      let previousX = null, previousY = null; // Previous coordinates for smoothing
-
-      window.onload = function () {
-        // Start WebGazer.js to track eye movement
-        webgazer
-          .setGazeListener(function (data, elapsedTime) {
-            if (data == null) return;
-
-            const eyePointer = document.getElementById("eyePointer");
-            const smoothedX = smoothMovement(previousX, data.x, smoothingFactor);
-            const smoothedY = smoothMovement(previousY, data.y, smoothingFactor);
-
-            eyePointer.style.left = smoothedX + "px";
-            eyePointer.style.top = smoothedY + "px";
-
-            previousX = smoothedX;
-            previousY = smoothedY;
-          })
-          .begin();
-
-        // Optional: to hide the webgazer video and feedback box
-        webgazer.showVideoPreview(true).showPredictionPoints(false);
-
-        // Calibration points interaction
-        document.querySelectorAll('.calibration-point').forEach(point => {
-          point.addEventListener('click', () => {
-            webgazer.recordScreenPosition(point.getBoundingClientRect().left, point.getBoundingClientRect().top);
-            point.style.backgroundColor = 'green'; // Change color after calibration
-          });
-        });
-
-        // Attach video feed to the video element
-        const videoFeed = document.getElementById("webgazerVideoFeed");
-        webgazer.setVideoElement(videoFeed);
-      };
-
-      // Smooth movement function
-      function smoothMovement(prev, current, factor) {
-        if (prev === null) return current;
-        return prev + (current - prev) * factor;
-      }
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
     </script>
-  </body>
+</body>
 </html>
