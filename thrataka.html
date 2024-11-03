@@ -4,137 +4,179 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thrataka Eye Exercise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: beige;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            background: url('soothing-background.jpg') no-repeat center center fixed;
-            background-size: cover;
-            font-family: Arial, sans-serif;
-            color: #fff;
-            position: relative;
+            padding: 20px;
+            color: #2c3e50;
         }
-        .container {
-            text-align: center;
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            color: #2c3e50;
         }
-        .timer {
-            font-size: 48px;
+
+        h2 {
+            font-size: 1.8rem;
             margin-bottom: 20px;
+            font-weight: 600;
+            color: #2c3e50;
         }
-        .dot {
-            width: 30px;
-            height: 30px;
-            background-color: red;
-            border-radius: 50%;
-            margin: 0 auto;
-            position: absolute; /* Changed to absolute for positioning */
-            top: 50%; /* Center vertically */
-            left: 50%; /* Center horizontally */
-            transform: translate(-50%, -50%); /* Center the dot */
-            animation: pulse 1s infinite alternate;
+
+        label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
         }
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            100% {
-                transform: scale(1.5);
-            }
+
+        select, button {
+            padding: 10px 20px;
+            margin: 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .controls {
-            margin-top: 20px;
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
         }
-        #eye-tracker {
-            position: absolute;
+
+        #videoFeed {
+            width: 600px;
+            height: 450px;
+            border: 2px solid #2c3e50;
+            margin-top: 30px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        #focusDot {
             width: 20px;
             height: 20px;
-            background-color: blue;
+            background-color: black;
             border-radius: 50%;
-            pointer-events: none; /* Prevent pointer events on the tracker */
-            z-index: 10; /* Ensure tracker appears above other elements */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Hidden by default */
+        }
+
+        #countdown {
+            margin-top: 30px;
+            font-size: 1.6rem;
+            color: #e74c3c;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            #videoFeed {
+                width: 100%;
+                height: auto;
+            }
+
+            select, button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            label {
+                font-size: 1rem;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            #videoFeed {
+                width: 100%;
+                height: auto;
+            }
         }
     </style>
-    <script src="https://cdn.rawgit.com/brownhci/WebGazer/master/webgazer.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Thrataka Eye Exercise</h1>
-        <div class="timer" id="timer">30</div>
-        <div class="dot" id="dot"></div>
-        <div class="controls">
-            <label for="time-select">Select Timer:</label>
-            <select id="time-select">
-                <option value="30">30s</option>
-                <option value="45">45s</option>
-                <option value="60">60s</option>
-            </select>
-            <button id="start-button">Start</button>
-            <button id="restart-button">Restart</button>
-        </div>
-        <div id="eye-tracker"></div> <!-- Eye tracker pointer -->
-    </div>
+    <h1>Thrataka Eye Exercise</h1>
+    
+    <!-- Timer selection -->
+    <label for="timer">Select Timer:</label>
+    <select id="timer">
+        <option value="30">30s</option>
+        <option value="45">45s</option>
+        <option value="60">60s</option>
+    </select>
+    <button onclick="startExercise()">Start</button>
+
+    <!-- Iris Tracking Video Feed -->
+    <h2>Iris Tracking Feed:</h2>
+    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
+
+    <!-- Dot for focus -->
+    <div id="focusDot"></div>
+
+    <!-- Timer display -->
+    <h2 id="countdown"></h2>
+
     <script>
-        let countdown; // Variable to hold the countdown interval
-        let time; // Variable to hold the remaining time
-        const eyeTracker = document.getElementById('eye-tracker'); // Eye tracker pointer
+        let countdownInterval;
 
-        // Initialize WebGazer
-        window.onload = function () {
-            webgazer.setRegression('ridge') // Set regression model
-                .setGazeListener((data, elapsedTime) => {
-                    if (data == null) return;
-                    const x = data.x; // X-coordinate of gaze
-                    const y = data.y; // Y-coordinate of gaze
-                    eyeTracker.style.left = `${x}px`;
-                    eyeTracker.style.top = `${y}px`;
+        function startExercise() {
+            const time = document.getElementById("timer").value;
+            const focusDot = document.getElementById("focusDot");
+            const countdown = document.getElementById("countdown");
 
-                    // Check if user is focused on the dot
-                    const dot = document.getElementById('dot');
-                    const dotRect = dot.getBoundingClientRect();
-                    if (
-                        x > dotRect.left &&
-                        x < dotRect.right &&
-                        y > dotRect.top &&
-                        y < dotRect.bottom
-                    ) {
-                        dot.style.backgroundColor = 'green'; // Change dot color when focused
-                    } else {
-                        dot.style.backgroundColor = 'red'; // Change back to red when not focused
-                    }
-                })
-                .begin();
-        };
+            focusDot.style.display = "block"; // Show the dot
+            let remainingTime = time;
 
-        document.getElementById('start-button').addEventListener('click', function () {
-            // Get selected time from the dropdown
-            time = parseInt(document.getElementById('time-select').value);
-            document.getElementById('timer').textContent = time;
+            countdown.textContent = `Time remaining: ${remainingTime}s`;
 
-            // Clear any existing countdown
-            clearInterval(countdown);
+            countdownInterval = setInterval(function () {
+                remainingTime--;
+                countdown.textContent = `Time remaining: ${remainingTime}s`;
 
-            // Start the countdown
-            countdown = setInterval(() => {
-                time--;
-                document.getElementById('timer').textContent = time;
-                if (time <= 0) {
-                    clearInterval(countdown);
-                    alert("Time's up!"); // Notify user when time is up
+                if (remainingTime <= 0) {
+                    clearInterval(countdownInterval);
+                    focusDot.style.display = "none"; // Hide the dot after time's up
+                    countdown.textContent = "";
+                    alert("Thrataka exercise complete!");
                 }
             }, 1000);
-        });
-
-        document.getElementById('restart-button').addEventListener('click', function () {
-            // Restart the timer to the selected value
-            time = parseInt(document.getElementById('time-select').value);
-            document.getElementById('timer').textContent = time;
-
-            // Clear existing countdown if it's running
-            clearInterval(countdown);
-        });
+        }
     </script>
 </body>
 </html>
