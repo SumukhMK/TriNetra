@@ -14,11 +14,12 @@
         body {
             background-color: beige;
             font-family: 'Raleway', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             text-align: center;
-            margin: 50px 0;
-            padding: 0 20px;
-            position: relative;
-            overflow: hidden; /* Prevent scrollbars */
             color: #2c3e50;
         }
 
@@ -43,6 +44,37 @@
             font-size: 1.2rem;
             margin-bottom: 30px;
             font-weight: 400;
+        }
+
+        /* Instruction box styling */
+        .instructions-box {
+            width: 90%;
+            max-width: 600px;
+            background-color: #f9f9f9;
+            border: 2px solid #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            font-size: 1rem;
+            color: #2c3e50;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+
+        .instructions-box h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        /* Center container styling */
+        .center-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            max-width: 700px;
         }
 
         /* Video feed styling */
@@ -112,11 +144,6 @@
             font-size: 1rem;
         }
 
-        /* Layout container for buttons */
-        .button-container {
-            margin: 30px auto;
-        }
-
         @media (max-width: 768px) {
             h1 {
                 font-size: 2.5rem;
@@ -130,106 +157,85 @@
                 width: 80%;
             }
         }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            h2 {
-                font-size: 1.3rem;
-            }
-
-            p {
-                font-size: 1rem;
-            }
-
-            button {
-                width: 100%;
-                font-size: 0.9rem;
-            }
-        }
     </style>
 </head>
 <body>
 
     <h1>Balloon Eye Exercise</h1>
-    <p>Focus on the <strong>blue balloon</strong> as it moves!</p>
 
-    <!-- Iris Tracking Video Feed -->
-    <h2>Iris Tracking Feed:</h2>
-    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
+    <div class="instructions-box" id="instructions-box">
+        <h3>Instructions for Balloon Exercise</h3>
+        <p>Sit comfortably and focus on the screen.</p>
+        <p>Click "Start Balloon Exercise" to begin.</p>
+        <p>Follow only the <strong>blue balloon</strong> with your eyes as it moves around.</p>
+        <p>Ignore the other balloons as distractions.</p>
+        <p>Click "Stop Balloon Exercise" to end the exercise.</p>
+        <p>Rest your eyes by focusing on a stationary object afterward.</p>
+    </div>
 
-    <!-- Target blue balloon -->
-    <div id="balloon"></div>
+    <button id="agreeButton" onclick="agreeAndStartExercise()">I've read the instructions, Start Balloon Exercise</button>
 
-    <!-- Multiple other balloons (distractors) -->
-    <div class="other-balloons" id="balloon1"></div>
-    <div class="other-balloons" id="balloon2"></div>
-    <div class="other-balloons" id="balloon3"></div>
-    <div class="other-balloons" id="balloon4"></div>
-    <div class="other-balloons" id="balloon5"></div>
+    <div class="center-container" id="exercise-components" style="display: none;">
+        <h2>Iris Tracking Feed:</h2>
+        <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
 
-    <!-- Button container -->
-    <div class="button-container">
-        <button onclick="startBalloon()">Start Balloon Exercise</button>
+        <!-- Target blue balloon -->
+        <div id="balloon"></div>
+
+        <!-- Multiple other balloons (distractors) -->
+        <div class="other-balloons" id="balloon1"></div>
+        <div class="other-balloons" id="balloon2"></div>
+        <div class="other-balloons" id="balloon3"></div>
+        <div class="other-balloons" id="balloon4"></div>
+        <div class="other-balloons" id="balloon5"></div>
+
         <button onclick="stopBalloon()">Stop Balloon Exercise</button>
     </div>
 
-    <!-- Floating Message -->
-    <div id="floating-message">It has already started!</div>
-
     <script>
-        let exerciseStarted = false; // Flag to check if the exercise has started
+        let exerciseStarted = false;
         let balloonInterval;
 
+        function agreeAndStartExercise() {
+            document.getElementById("instructions-box").style.display = "none";
+            document.getElementById("agreeButton").style.display = "none";
+            document.getElementById("exercise-components").style.display = "flex";
+            startBalloon();
+        }
+
         function startBalloon() {
-            // If the exercise has already started, show a floating message
-            if (exerciseStarted) {
-                showFloatingMessage();
-                return;
-            }
+            if (exerciseStarted) return;
 
-            alert("Balloon exercise started.");
-            exerciseStarted = true; // Mark exercise as started
-
+            exerciseStarted = true;
             let balloons = [document.getElementById("balloon")];
             let otherBalloons = document.getElementsByClassName("other-balloons");
 
-            // Add other balloons to the balloons array
             for (let i = 0; i < otherBalloons.length; i++) {
                 balloons.push(otherBalloons[i]);
             }
 
-            // Initialize balloons with random positions and velocities
             balloons.forEach(balloon => {
                 balloon.style.left = Math.random() * (window.innerWidth - 50) + 'px';
                 balloon.style.top = Math.random() * (window.innerHeight - 100) + 'px';
-
-                // Randomize velocity
-                balloon.velocityX = (Math.random() * 4 + 1) * (Math.random() < 0.5 ? 1 : -1); // Random speed between -5 and 5
-                balloon.velocityY = (Math.random() * 4 + 1) * (Math.random() < 0.5 ? 1 : -1); // Random speed between -5 and 5
+                balloon.velocityX = (Math.random() * 4 + 1) * (Math.random() < 0.5 ? 1 : -1);
+                balloon.velocityY = (Math.random() * 4 + 1) * (Math.random() < 0.5 ? 1 : -1);
             });
 
             balloonInterval = setInterval(() => {
-                // Move each balloon
                 balloons.forEach(balloon => {
-                    // Update balloon position
                     let balloonX = parseFloat(balloon.style.left);
                     let balloonY = parseFloat(balloon.style.top);
 
                     balloonX += balloon.velocityX;
                     balloonY += balloon.velocityY;
 
-                    // Bounce off edges
                     if (balloonX < 0 || balloonX > window.innerWidth - 50) {
-                        balloon.velocityX *= -1; // Reverse direction
+                        balloon.velocityX *= -1;
                     }
                     if (balloonY < 0 || balloonY > window.innerHeight - 100) {
-                        balloon.velocityY *= -1; // Reverse direction
+                        balloon.velocityY *= -1;
                     }
 
-                    // Update position
                     balloon.style.left = balloonX + 'px';
                     balloon.style.top = balloonY + 'px';
                 });
@@ -237,21 +243,9 @@
         }
 
         function stopBalloon() {
-            if (!exerciseStarted) return;
-
-            clearInterval(balloonInterval); // Stop balloon movement
-            exerciseStarted = false; // Reset exercise state
+            clearInterval(balloonInterval);
+            exerciseStarted = false;
             alert("Balloon exercise stopped.");
-        }
-
-        function showFloatingMessage() {
-            let message = document.getElementById("floating-message");
-            message.style.display = 'block'; // Show the message
-
-            // Hide the message after 3 seconds
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3000);
         }
     </script>
 
