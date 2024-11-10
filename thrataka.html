@@ -11,7 +11,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Raleway', sans-serif;
             background-color: beige;
@@ -22,31 +21,32 @@
             padding: 20px;
             color: #2c3e50;
         }
-
         h1 {
             font-family: 'Playfair Display', serif;
-            font-size: 3rem;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-            color: #2c3e50;
-        }
-
-        h2 {
-            font-size: 1.8rem;
+            font-size: 2.5rem;
             margin-bottom: 20px;
-            font-weight: 600;
             color: #2c3e50;
+            text-align: center;
         }
-
-        label {
-            font-size: 1.2rem;
-            font-weight: 600;
+        .instructions-box {
+            width: 90%;
+            max-width: 600px;
+            background-color: #f9f9f9;
+            border: 2px solid #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            font-size: 1rem;
             color: #2c3e50;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
-        select, button {
+        .instructions-box h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        button {
             padding: 10px 20px;
-            margin: 15px;
+            margin: 15px 10px;
             font-size: 1rem;
             border: none;
             border-radius: 8px;
@@ -54,23 +54,24 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
-
         button:hover {
             background-color: #2980b9;
             transform: translateY(-2px);
         }
-
+        #videoFeed, #focusDot, #countdown, #stopButton {
+            display: none;
+        }
         #videoFeed {
-            width: 600px;
-            height: 450px;
+            width: 100%;
+            max-width: 550px;
+            height: auto;
+            margin-top: 20px;
             border: 2px solid #2c3e50;
-            margin-top: 30px;
             box-shadow: 0 6px 12px rgba(0,0,0,0.1);
         }
-
         #focusDot {
             width: 20px;
             height: 20px;
@@ -80,90 +81,79 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            display: none; /* Hidden by default */
         }
-
         #countdown {
-            margin-top: 30px;
+            margin-top: 20px;
             font-size: 1.6rem;
             color: #e74c3c;
             font-weight: 700;
+            text-align: center;
         }
-
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            h2 {
-                font-size: 1.5rem;
-            }
-
-            #videoFeed {
-                width: 100%;
-                height: auto;
-            }
-
-            select, button {
-                padding: 8px 16px;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 480px) {
             h1 {
                 font-size: 2rem;
             }
-
-            label {
-                font-size: 1rem;
-            }
-
-            h2 {
-                font-size: 1.2rem;
-            }
-
-            #videoFeed {
-                width: 100%;
-                height: auto;
+            .instructions-box h2 {
+                font-size: 1.3rem;
             }
         }
     </style>
 </head>
 <body>
     <h1>Thrataka Eye Exercise</h1>
-    
-    <!-- Timer selection -->
-    <label for="timer">Select Timer:</label>
-    <select id="timer">
-        <option value="30">30s</option>
-        <option value="45">45s</option>
-        <option value="60">60s</option>
-    </select>
-    <button onclick="startExercise()">Start</button>
 
-    <!-- Iris Tracking Video Feed -->
-    <h2>Iris Tracking Feed:</h2>
-    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
+    <div class="instructions-box" id="instructions-box">
+        <h2>Instructions for Thrataka</h2>
+        <p>Sit comfortably and focus on the screen.</p>
+        <p>Click "Start Exercise" to begin.</p>
+        <p>Focus steadily on the black dot in the center of the screen without blinking.</p>
+        <p>Relax and avoid moving your eyes from the dot until the timer completes.</p>
+        <p>An alert will notify you when the exercise is finished; take a moment to rest your eyes afterward.</p>
+    </div>
 
-    <!-- Dot for focus -->
-    <div id="focusDot"></div>
+    <button id="agreeButton" onclick="agreeAndStartExercise()">I've agreed to Instructions, Start Exercise</button>
 
-    <!-- Timer display -->
-    <h2 id="countdown"></h2>
+    <div id="exercise-components" style="display: none;">
+        <label for="timer">Select Timer:</label>
+        <select id="timer">
+            <option value="30">30s</option>
+            <option value="45">45s</option>
+            <option value="60">60s</option>
+        </select>
+        <button onclick="startExercise()">Start Exercise</button>
+        <button id="stopButton" onclick="stopExercise()">Stop Exercise</button>
+
+        <!-- Iris Tracking Video Feed -->
+        <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
+        
+        <!-- Dot for focus -->
+        <div id="focusDot"></div>
+        
+        <!-- Timer display -->
+        <h2 id="countdown"></h2>
+    </div>
 
     <script>
         let countdownInterval;
+
+        function agreeAndStartExercise() {
+            document.getElementById("instructions-box").style.display = "none";
+            document.getElementById("agreeButton").style.display = "none";
+            document.getElementById("exercise-components").style.display = "block";
+            document.getElementById("videoFeed").style.display = "block";
+            document.getElementById("stopButton").style.display = "inline-block";
+        }
 
         function startExercise() {
             const time = document.getElementById("timer").value;
             const focusDot = document.getElementById("focusDot");
             const countdown = document.getElementById("countdown");
 
-            focusDot.style.display = "block"; // Show the dot
+            focusDot.style.display = "block";
             let remainingTime = time;
 
             countdown.textContent = `Time remaining: ${remainingTime}s`;
+            countdown.style.display = "block";
 
             countdownInterval = setInterval(function () {
                 remainingTime--;
@@ -171,11 +161,19 @@
 
                 if (remainingTime <= 0) {
                     clearInterval(countdownInterval);
-                    focusDot.style.display = "none"; // Hide the dot after time's up
+                    focusDot.style.display = "none";
                     countdown.textContent = "";
+                    countdown.style.display = "none";
                     alert("Thrataka exercise complete!");
                 }
             }, 1000);
+        }
+
+        function stopExercise() {
+            clearInterval(countdownInterval);
+            document.getElementById("focusDot").style.display = "none";
+            document.getElementById("countdown").textContent = "";
+            document.getElementById("countdown").style.display = "none";
         }
     </script>
 </body>
