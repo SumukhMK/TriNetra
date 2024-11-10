@@ -4,165 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saccades Exercise</title>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        /* (Styles remain the same) */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Raleway', sans-serif;
+            font-family: Arial, sans-serif;
             background-color: beige;
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            color: #2c3e50;
-            overflow: hidden;
-        }
-
-        h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 3rem;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+            padding: 15px;
             color: #2c3e50;
         }
 
-        h2 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            font-weight: 600;
+        .instructions-box {
+            width: 85%;
+            max-width: 500px;
+            background-color: #f9f9f9;
+            border: 2px solid #2c3e50;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px auto;
+            font-size: 0.9rem;
             color: #2c3e50;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: left;
         }
 
-        p {
-            margin-bottom: 30px;
-            font-size: 1.2rem;
-            color: #34495e;
+        .instructions-box h3 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
         }
 
-        label {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-right: 10px;
-        }
-
-        select, button {
-            padding: 10px 20px;
-            margin: 15px;
-            font-size: 1rem;
+        button, select {
+            padding: 8px 15px;
+            margin: 8px;
+            font-size: 0.9rem;
             border: none;
             border-radius: 8px;
             background-color: #3498db;
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        button:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-
-        #button-container {
-            margin-top: 20px;
-        }
-
         #videoFeed {
-            width: 600px;
-            height: 450px;
+            width: 50vw;
+            max-width: 500px;
+            height: auto;
             border: 2px solid #2c3e50;
-            margin-top: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            margin-top: 15px;
+            display: none;
         }
 
         #moving-object {
-            width: 50px;
-            height: 50px;
+            width: 2.5vw;
+            height: 2.5vw;
+            max-width: 40px;
+            max-height: 40px;
             background-color: red;
             position: absolute;
             border-radius: 50%;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            display: none; /* Hide initially */
-        }
-
-        #floating-message {
             display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1000;
         }
     </style>
+    
 </head>
 <body>
     <h1>Saccades Eye Exercise</h1>
-    <p>Follow the moving object with your eyes.</p>
 
-    <!-- Iris Tracking Video Feed -->
-    <h2>Iris Tracking Feed:</h2>
-    <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
+    <div class="instructions-box" id="instructions-box">
+        <h3>Instructions for Saccades Exercise</h3>
+        <p>Sit comfortably, ensuring a clear view of the screen.</p>
+        <p>Click "I've read the instructions, start exercise" to begin.</p>
+        <p>Follow the red moving object with just your eyes.</p>
+        <p>Adjust the speed if desired using the dropdown menu.</p>
+        <p>Click "Stop Saccades Exercise" to finish.</p>
+    </div>    
 
-    <!-- Moving Object for Saccades -->
-    <div id="moving-object"></div>
+    <button id="start-button" onclick="agreeAndStartExercise()">I've read the instructions, start exercise</button>
 
-    <!-- Speed Selector -->
-    <label for="speed">Select Speed:</label>
-    <select id="speed" onchange="updateSpeed()">
-        <option value="1000">1 Second</option>
-        <option value="700">0.7 Seconds</option>
-        <option value="500">0.5 Seconds</option>
-    </select>
-
-    <!-- Button Container for Start and Stop -->
-    <div id="button-container">
-        <button onclick="startSaccades()">Start Saccades Exercise</button>
+    <div id="exercise-components" style="display: none;">
+        <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Iris Tracking Video Feed">
+        <label for="speed">Select Speed:</label>
+        <select id="speed" onchange="updateSpeed()">
+            <option value="1000">1 Second</option>
+            <option value="700">0.7 Seconds</option>
+            <option value="500">0.5 Seconds</option>
+        </select>
         <button onclick="stopSaccades()">Stop Saccades Exercise</button>
+        <div id="moving-object"></div>
     </div>
 
-    <!-- Floating Message -->
-    <div id="floating-message">The exercise has already started!</div>
-
     <script>
-        let speed = 1000; // Default interval speed in milliseconds
+        let speed = 1000;
         let exerciseStarted = false;
         let interval;
+
+        function agreeAndStartExercise() {
+            document.getElementById("instructions-box").style.display = "none";
+            document.getElementById("start-button").style.display = "none";
+            document.getElementById("exercise-components").style.display = "block";
+            document.getElementById("videoFeed").style.display = "block";
+            startSaccades();
+        }
 
         function updateSpeed() {
             speed = parseInt(document.getElementById("speed").value);
             if (exerciseStarted) {
                 clearInterval(interval);
-                startSaccades(); // Restart with updated speed
+                startSaccades();
             }
         }
 
         function startSaccades() {
-            if (exerciseStarted) {
-                showFloatingMessage();
-                return;
-            }
-
-            alert("Saccades exercise started.");
             exerciseStarted = true;
             let object = document.getElementById("moving-object");
-            object.style.display = 'block'; // Make the object visible
+            object.style.display = 'block';
 
             interval = setInterval(() => {
-                // Randomly position the object within the window bounds
                 let windowWidth = window.innerWidth;
                 let windowHeight = window.innerHeight;
                 let objectWidth = object.offsetWidth;
@@ -177,22 +137,9 @@
         }
 
         function stopSaccades() {
-            if (!exerciseStarted) return;
-
             clearInterval(interval);
             exerciseStarted = false;
-            let object = document.getElementById("moving-object");
-            object.style.display = 'none'; // Hide the object when stopped
-            alert("Saccades exercise stopped.");
-        }
-
-        function showFloatingMessage() {
-            let message = document.getElementById("floating-message");
-            message.style.display = 'block';
-
-            setTimeout(() => {
-                message.style.display = 'none';
-            }, 3000);
+            document.getElementById("moving-object").style.display = 'none';
         }
     </script>
 </body>
