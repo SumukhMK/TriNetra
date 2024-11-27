@@ -68,6 +68,8 @@ def balloon():
 def video_feed():
     return Response(generate_iris_tracking(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
-
+@app.route('/testing')
+def testing():
+    return render_template('testing.html')  # The filename of your testing page
 if __name__ == '__main__':
     app.run(debug=True)
