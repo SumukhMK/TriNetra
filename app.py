@@ -1,9 +1,21 @@
-from flask import Flask, render_template, Response
+from flask import Flask, Response, render_template, request, redirect, url_for, flash, session
 import cv2
 import mediapipe as mp
 import numpy as np
+from flask_bcrypt import Bcrypt
+from flask_mysqldb import MySQL
 
 app = Flask(__name__)
+app.secret_key = 'a17f3e5b6a8c4e2f9d6e7f4a5c8b3d7f'
+
+# Configure MySQL
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'sanjay@123'
+app.config['MYSQL_DB'] = 'vision_therapy'
+
+mysql = MySQL(app)
+bcrypt = Bcrypt(app)
 
 # MediaPipe Face Mesh setup
 mp_face_mesh = mp.solutions.face_mesh
@@ -52,24 +64,84 @@ def generate_iris_tracking():
 def index():
     return render_template('index.html')
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        cursor = mysql.connection.cursor()
+        cursor.execute('INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)',
+                       (username, email, password_hash))
+        mysql.connection.commit()
+        cursor.close()
+
+        flash('Signup successful! Please log in.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']  # Corrected key to 'password'
+
+        # Query the database for the user
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        cursor.close()
+
+        if user and bcrypt.check_password_hash(user[3], password):  # Assuming password_hash is in the 4th column
+            session['user_id'] = user[0]  # Assuming id is in the 1st column
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password.', 'danger')
+            return redirect(url_for('login'))
+    return render_template('login.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('index.html')
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Logged out successfully.', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/exercise/<string:name>')
+def exercise(name):
+    if 'user_id' not in session:
+        flash('Please log in to access exercises.', 'warning')
+        return redirect(url_for('login'))
+    return render_template(f'{name}.html')
+
 @app.route('/thrataka')
 def thrataka():
-    return render_template('thrataka.html')  # Ensure this template exists
+    return exercise('thrataka')
 
 @app.route('/saccades')
 def saccades():
-    return render_template('saccades.html')  # Ensure this template exists
+    return exercise('saccades')
 
 @app.route('/balloon')
 def balloon():
-    return render_template('balloon.html')  # Ensure this template exists
+    return exercise('balloon')
+
+@app.route('/testing')
+def testing():
+    return render_template('testing.html')
 
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_iris_tracking(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
-@app.route('/testing')
-def testing():
-    return render_template('testing.html')  # The filename of your testing page
+
 if __name__ == '__main__':
     app.run(debug=True)
