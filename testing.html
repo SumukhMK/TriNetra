@@ -8,58 +8,15 @@
         body {
             font-family: Arial, sans-serif;
             background-color: beige;
+            text-align: center;
             margin: 0;
             padding: 0;
-            text-align: center;
         }
-
         h1 {
             color: #2c3e50;
             font-size: 2.5rem;
             margin: 20px 0;
         }
-
-        .navbar {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .navbar a {
-            margin: 0 1rem;
-            padding: 0.8rem 1.5rem;
-            color: #2c3e50;
-            text-decoration: none;
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-
-        .navbar a:hover {
-            background-color: #f5f5f5;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .navbar a.active {
-            background-color: #3498db;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-        }
-
-        .menu {
-            margin-bottom: 20px;
-        }
-
         .menu button {
             padding: 10px 20px;
             background-color: #3498db;
@@ -70,68 +27,49 @@
             font-size: 1rem;
             margin: 10px;
         }
-
-        .menu button:hover {
-            background-color: #2980b9;
-        }
-
         .test-section {
             display: none;
-            margin: 20px 0;
+            margin: 20px auto;
             padding: 20px;
             border: 2px solid #2c3e50;
             border-radius: 10px;
             background-color: #f9f9f9;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
-        .test-section h2 {
-            font-size: 1.8rem;
-            color: #3498db;
-            margin-bottom: 15px;
+        .progress-report {
+            margin: 20px auto;
+            padding: 20px;
+            border: 2px solid #27ae60;
+            border-radius: 10px;
+            background-color: #ecf0f1;
         }
-
-        .instructions {
-            font-size: 1rem;
-            color: #555;
-            margin-bottom: 15px;
-        }
-
-        .input-box {
-            margin-top: 15px;
-        }
-
-        .floating-text {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #e74c3c;
-            position: absolute;
-        }
-
         .object {
-            width: 50px;
-            height: 50px;
+            width: 30px;
+            height: 30px;
             background-color: green;
             position: absolute;
             border-radius: 50%;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-70px); }
+        }
+        #floating-text {
+            font-size: 18px;
+            color: red;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translateX(-50%);
+            animation: float 4s infinite alternate ease-in-out;
         }
     </style>
 </head>
 <body>
-
-    <!-- Navbar -->
-    <div class="navbar">
-        <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('thrataka') }}">Thrataka</a>
-        <a href="{{ url_for('saccades') }}">Saccades</a>
-        <a href="{{ url_for('balloon') }}">Balloon</a>
-        <a href="{{ url_for('testing') }}" class="active">Testing</a>
-    </div>
-
     <h1>Vision Therapy Testing Page</h1>
-
-    <!-- Menu -->
     <div class="menu">
         <button onclick="showTest('font-reading-test')">Font Reading Test</button>
         <button onclick="showTest('floating-text-test')">Floating Text Test</button>
@@ -141,129 +79,138 @@
     <!-- Font Reading Test -->
     <div class="test-section" id="font-reading-test">
         <h2>Font Reading Test</h2>
-        <p class="instructions">Read the words below in order of appearance (largest to smallest font) and type them into the input box.</p>
-        <div id="font-words" style="margin: 10px auto;">
-            <!-- Words will be dynamically generated -->
+        <p id="font-words" style="font-size: 20px; font-weight: bold;">Big<br>Medium<br>Small</p>
+        <input type="text" id="font-input" placeholder="Type one word at a time" />
+        <button onclick="validateFontTest()">Submit</button>
+        <p id="font-feedback"></p>
+        <div class="progress-report">
+            <h2>Font Reading Progress</h2>
+            <p>Score: <span id="font-score">0</span>/10</p>
         </div>
-        <div class="input-box">
-            <input type="text" id="font-input" placeholder="Type the words here in order" />
-            <button onclick="validateFontTest()">Submit</button>
-        </div>
-        <p id="font-feedback" style="color: #e74c3c; font-weight: bold;"></p>
     </div>
 
-    <!-- Floating Text Reading Test -->
+    <!-- Floating Text Test -->
     <div class="test-section" id="floating-text-test">
         <h2>Floating Text Test</h2>
-        <p class="instructions">Try to read the bouncing text and type it into the input box.</p>
-        <div id="floating-text" class="floating-text" style="left: 50%; top: 50%;">Vision Therapy</div>
-        <div class="input-box">
-            <input type="text" id="floating-input" placeholder="Type the text here" />
-            <button onclick="validateFloatingTest()">Submit</button>
+        <div id="floating-text">Vision Therapy</div>
+        <input type="text" id="floating-input" placeholder="Type the floating text here" />
+        <button onclick="validateFloatingTest()">Submit</button>
+        <p id="floating-feedback"></p>
+        <div class="progress-report">
+            <h2>Floating Text Progress</h2>
+            <p>Score: <span id="floating-score">0</span>/10</p>
         </div>
-        <p id="floating-feedback" style="color: #e74c3c; font-weight: bold;"></p>
     </div>
 
     <!-- Object Blinking Test -->
     <div class="test-section" id="object-counting-test">
         <h2>Object Blinking Test</h2>
-        <p class="instructions">Count the number of objects that appear on the screen and enter the total count below.</p>
         <div id="object-container"></div>
         <button onclick="startObjectTest()">Start Test</button>
-        <div class="input-box">
-            <input type="number" id="object-input" placeholder="Enter total count" />
-            <button onclick="validateObjectTest()">Submit</button>
+        <input type="number" id="object-input" placeholder="Enter total blinks" />
+        <button onclick="validateObjectTest()">Submit</button>
+        <p id="object-feedback"></p>
+        <div class="progress-report">
+            <h2>Object Blinking Progress</h2>
+            <p>Score: <span id="object-score">0</span>/10</p>
         </div>
-        <p id="object-feedback" style="color: #e74c3c; font-weight: bold;"></p>
     </div>
 
     <script>
-        // Menu functionality
         function showTest(testId) {
             document.querySelectorAll('.test-section').forEach(section => section.style.display = 'none');
             document.getElementById(testId).style.display = 'block';
         }
 
         // Font Reading Test
-        const fontWords = ["Big", "Medium", "Small"];
-        const fontSizes = [32, 24, 16];
-        function generateFontWords() {
-            const container = document.getElementById("font-words");
-            container.innerHTML = "";
-            fontWords.forEach((word, index) => {
-                const span = document.createElement("span");
-                span.style.fontSize = `${fontSizes[index]}px`;
-                span.textContent = word;
-                container.appendChild(span);
-                container.appendChild(document.createElement("br"));
-            });
-        }
-        generateFontWords();
+        let fontScore = 0;
+        let answeredWords = new Set();
+        let incorrectWords = new Set();
 
         function validateFontTest() {
-            const userInput = document.getElementById("font-input").value.trim();
-            const correctText = fontWords.join(" ");
-            const feedback = document.getElementById("font-feedback");
-            if (userInput === correctText) {
-                feedback.textContent = "Correct!";
+            let userInput = document.getElementById("font-input").value.trim();
+            let correctWords = ["Big", "Medium", "Small"];
+            let feedback = document.getElementById("font-feedback");
+            let scoreSpan = document.getElementById("font-score");
+
+            if (correctWords.includes(userInput)) {
+                if (incorrectWords.has(userInput)) {
+                    feedback.textContent = "⚠ You previously entered this word incorrectly. No score awarded.";
+                } else if (!answeredWords.has(userInput)) {
+                    answeredWords.add(userInput);
+                    fontScore += 3.34;
+                    if (fontScore > 10) fontScore = 10;
+                    feedback.textContent = "✅ Correct!";
+                } else {
+                    feedback.textContent = "⚠ You already entered this word!";
+                }
             } else {
-                feedback.textContent = "Incorrect, try again.";
+                feedback.textContent = "❌ Incorrect, try again.";
+                incorrectWords.add(userInput);
             }
+
+            scoreSpan.textContent = Math.round(fontScore);
+            document.getElementById("font-input").value = "";
         }
 
         // Floating Text Test
-        let floatDirectionX = 1, floatDirectionY = 1;
-        setInterval(() => {
-            const text = document.getElementById("floating-text");
-            let x = parseInt(window.getComputedStyle(text).left, 10);
-            let y = parseInt(window.getComputedStyle(text).top, 10);
-            if (x <= 0 || x >= window.innerWidth - text.offsetWidth) floatDirectionX *= -1;
-            if (y <= 0 || y >= window.innerHeight - text.offsetHeight) floatDirectionY *= -1;
-            text.style.left = (x + 5 * floatDirectionX) + "px";
-            text.style.top = (y + 5 * floatDirectionY) + "px";
-        }, 50);
+        let floatingAttempts = 0;
 
         function validateFloatingTest() {
-            const userInput = document.getElementById("floating-input").value.trim();
-            const feedback = document.getElementById("floating-feedback");
-            if (userInput === "Vision Therapy") {
-                feedback.textContent = "Correct!";
+            let userInput = document.getElementById("floating-input").value.trim();
+            let feedback = document.getElementById("floating-feedback");
+            let scoreSpan = document.getElementById("floating-score");
+
+            floatingAttempts++;
+
+            if (userInput.toLowerCase() === "vision therapy".toLowerCase()) {
+                let score = 10 - (floatingAttempts - 1) * 2;
+                score = Math.max(score, 0);
+                feedback.textContent = "✅ Correct!";
+                scoreSpan.textContent = score.toString();
             } else {
-                feedback.textContent = "Incorrect, try again.";
+                feedback.textContent = "❌ Wrong, try again.";
             }
         }
 
         // Object Blinking Test
-        let objectCount = 0, maxObjects = 10;
         function startObjectTest() {
-            const container = document.getElementById("object-container");
-            container.innerHTML = ""; // Clear previous objects
-            objectCount = 0;
+            let container = document.getElementById("object-container");
+            container.innerHTML = '';
 
-            const interval = setInterval(() => {
-                const object = document.createElement("div");
-                object.className = "object";
-                object.style.left = Math.random() * (window.innerWidth - 50) + "px";
-                object.style.top = Math.random() * (window.innerHeight - 50) + "px";
-                container.appendChild(object);
-                objectCount++;
-                setTimeout(() => object.remove(), 500); // Object disappears after 500ms
-                if (objectCount >= maxObjects) {
-                    clearInterval(interval);
-                }
-            }, 1000);
+            let obj = document.createElement("div");
+            obj.classList.add("object");
+            obj.style.top = "200px";
+            obj.style.left = "50%";
+            container.appendChild(obj);
+
+            let blinkTimes = Math.floor(Math.random() * 11) + 5;  // Random blinks between 5 and 15
+            container.dataset.count = blinkTimes;
+            let blinks = 0;
+
+            let blinkInterval = setInterval(() => {
+                obj.style.visibility = obj.style.visibility === "hidden" ? "visible" : "hidden";
+                blinks++;
+                if (blinks === blinkTimes * 2) clearInterval(blinkInterval);
+            }, 500);
         }
 
         function validateObjectTest() {
-            const userInput = parseInt(document.getElementById("object-input").value.trim());
-            const feedback = document.getElementById("object-feedback");
-            if (userInput === objectCount) {
-                feedback.textContent = "Correct!";
+            let userInput = parseInt(document.getElementById("object-input").value);
+            let actualCount = parseInt(document.getElementById("object-container").dataset.count);
+            let scoreSpan = document.getElementById("object-score");
+            let feedback = document.getElementById("object-feedback");
+
+            if (userInput === actualCount) {
+                feedback.textContent = "✅ Correct!";
+                scoreSpan.textContent = "10";
             } else {
-                feedback.textContent = `Incorrect, the correct count was ${objectCount}.`;
+                let difference = Math.abs(userInput - actualCount);
+                let score = Math.max(10 - difference, 0);
+                feedback.textContent = `❌ Incorrect. The correct count was ${actualCount}.`;
+                scoreSpan.textContent = score.toString();
             }
         }
     </script>
-
 </body>
 </html>
